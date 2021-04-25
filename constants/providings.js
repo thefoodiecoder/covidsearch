@@ -1,10 +1,11 @@
 const providings = {
-    BED: "Bed",
+    BED_WITH_OXYGEN: "Bed with oxygen",
+    BED: "Bed without oxygen",
     OXYGEN: "Oxygen",
     PLASMA: "Plasma",
     AMBULANCE: "Ambulance",
-    FOOD: "Food",
-    ICU_BED: "ICU Bed"
+    FOOD: "Food Services",
+    MEDICINE: "Medicines"
 };
 
 export default providings;
