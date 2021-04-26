@@ -1,8 +1,9 @@
-export default function NeedsCheckbox({ children, checked = false, onChange = () => { } }) {
-    return (
-        <label className="flex item-center justify-center p-3">
-            <input type="checkbox" className="checked:bg-blue-600 checked:border-transparent" checked={checked} value="OXYGEN" onChange={onChange} />
-            {" "}{children}
-        </label>
-    )
+import { Checkbox } from "@shopify/polaris";
+
+export default function NeedsCheckbox({
+  label,
+  checked = false,
+  onChange = () => {},
+}) {
+  return <Checkbox label={label} checked={checked} onChange={onChange} />;
 }

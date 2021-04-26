@@ -1,120 +1,132 @@
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { Button } from "@shopify/polaris";
+import Link from "next/link";
+import { useState, useCallback } from "react";
 import Dropdown from "../components/Dropdown";
-import NeedsCheckbox from '../components/NeedsCheckbox';
+import NeedsCheckbox from "../components/NeedsCheckbox";
+import cities from "../constants/cities";
 import providings from "../constants/providings";
 
 export default function Home() {
-  const [cities, setCities] = useState([])
-  const [selected, setSelected] = useState("Select your city")
+  const citiesOptions = cities
+    .sort()
+    .map((city) => ({ value: city, label: city }));
   const [needs, setNeeds] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [inputValue, setInputValue] = useState([]);
+  const [options, setOptions] = useState(citiesOptions);
 
-  useEffect(() => {
-    fetch("/api/cities").then((res) => res.json()).then(data => setCities(data.cities))
-  }, [])
+  const updateText = useCallback(
+    (value) => {
+      setInputValue([value]);
+
+      if (value === "") {
+        setOptions(citiesOptions);
+        return;
+      }
+
+      const filterRegex = new RegExp(value, "i");
+      const resultOptions = citiesOptions.filter((option) =>
+        option.label.match(filterRegex)
+      );
+      setOptions(resultOptions);
+    },
+    [citiesOptions]
+  );
+
+  const updateSelection = useCallback(
+    (selected) => {
+      const selectedValue = selected.map((selectedItem) => {
+        const matchedOption = options.find((option) => {
+          return option.value.match(selectedItem);
+        });
+        return matchedOption && matchedOption.label;
+      });
+
+      setSelectedOptions(selected);
+      setInputValue(selectedValue);
+    },
+    [options]
+  );
 
   const createHref = () => {
-    const searchParams = new URLSearchParams()
+    const searchParams = new URLSearchParams();
 
-    new Set(needs).has(providings.BED) && searchParams.append(providings.BED, "1")
-    new Set(needs).has(providings.OXYGEN) && searchParams.append(providings.OXYGEN, "1")
-    new Set(needs).has(providings.ICU_BED) && searchParams.append(providings.ICU_BED, "1")
-    new Set(needs).has(providings.PLASMA) && searchParams.append(providings.PLASMA, "1")
-    new Set(needs).has(providings.FOOD) && searchParams.append(providings.FOOD, "1")
-    new Set(needs).has(providings.AMBULANCE) && searchParams.append(providings.AMBULANCE, "1")
+    // Add cities in query params
+    inputValue.length && searchParams.append("cities", inputValue.join(","));
 
-    return searchParams.toString()
-  }
+    // Add providing in query params
+    new Set(needs).has(providings.BED) &&
+      searchParams.append(providings.BED, "1");
+    new Set(needs).has(providings.OXYGEN) &&
+      searchParams.append(providings.OXYGEN, "1");
+    new Set(needs).has(providings.PLASMA) &&
+      searchParams.append(providings.PLASMA, "1");
+    new Set(needs).has(providings.FOOD) &&
+      searchParams.append(providings.FOOD, "1");
+    new Set(needs).has(providings.AMBULANCE) &&
+      searchParams.append(providings.AMBULANCE, "1");
+
+    return searchParams.toString();
+  };
+
+  const selectNeeds = (checked, providing) =>
+    setNeeds((needs) => {
+      const needSet = new Set(needs);
+      if (checked) {
+        needSet.add(providing);
+      }
+      if (!checked) {
+        needSet.delete(providing);
+      }
+      return [...needSet];
+    });
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <div>
-        <Dropdown items={cities} selected={selected} setSelected={setSelected} />
+        <Dropdown
+          value={inputValue}
+          options={citiesOptions}
+          selected={selectedOptions}
+          onChange={updateText}
+          onSelect={updateSelection}
+        />
       </div>
       <div className="flex justify-evenly py-3">
-        <NeedsCheckbox checked={new Set(needs).has(providings.BED)} onChange={(event) => setNeeds(needs => {
-          const needSet = new Set(needs)
-          if (event.target.checked) {
-            needSet.add(providings.BED)
-          }
-          if (!event.target.checked) {
-            needSet.delete(providings.BED)
-          }
-          return [...needSet]
-        })}>
-          {providings.BED}
-        </NeedsCheckbox>
+        <NeedsCheckbox
+          label={providings.BED}
+          checked={new Set(needs).has(providings.BED)}
+          onChange={(checked) => selectNeeds(checked, providings.BED)}
+        />
 
-        <NeedsCheckbox checked={new Set(needs).has(providings.OXYGEN)} onChange={(event) => setNeeds(needs => {
-          const needSet = new Set(needs)
-          if (event.target.checked) {
-            needSet.add(providings.OXYGEN)
-          }
-          if (!event.target.checked) {
-            needSet.delete(providings.OXYGEN)
-          }
-          return [...needSet]
-        })}>
-          {providings.OXYGEN}
-        </NeedsCheckbox>
+        <NeedsCheckbox
+          label={providings.OXYGEN}
+          checked={new Set(needs).has(providings.OXYGEN)}
+          onChange={(checked) => selectNeeds(checked, providings.OXYGEN)}
+        />
 
-        <NeedsCheckbox checked={new Set(needs).has(providings.PLASMA)} onChange={(event) => setNeeds(needs => {
-          const needSet = new Set(needs)
-          if (event.target.checked) {
-            needSet.add(providings.PLASMA)
-          }
-          if (!event.target.checked) {
-            needSet.delete(providings.PLASMA)
-          }
-          return [...needSet]
-        })}>
-          {providings.PLASMA}
-        </NeedsCheckbox>
+        <NeedsCheckbox
+          label={providings.PLASMA}
+          checked={new Set(needs).has(providings.PLASMA)}
+          onChange={(checked) => selectNeeds(checked, providings.PLASMA)}
+        />
 
-        <NeedsCheckbox checked={new Set(needs).has(providings.ICU_BED)} onChange={(event) => setNeeds(needs => {
-          const needSet = new Set(needs)
-          if (event.target.checked) {
-            needSet.add(providings.ICU_BED)
-          }
-          if (!event.target.checked) {
-            needSet.delete(providings.ICU_BED)
-          }
-          return [...needSet]
-        })}>
-          {providings.ICU_BED}
-        </NeedsCheckbox>
-
-        <NeedsCheckbox checked={new Set(needs).has(providings.AMBULANCE)} onChange={(event) => setNeeds(needs => {
-          const needSet = new Set(needs)
-          if (event.target.checked) {
-            needSet.add(providings.AMBULANCE)
-          }
-          if (!event.target.checked) {
-            needSet.delete(providings.AMBULANCE)
-          }
-          return [...needSet]
-        })}>
-          {providings.AMBULANCE}
-        </NeedsCheckbox>
-
-        <NeedsCheckbox checked={new Set(needs).has(providings.FOOD)} onChange={(event) => setNeeds(needs => {
-          const needSet = new Set(needs)
-          if (event.target.checked) {
-            needSet.add(providings.FOOD)
-          }
-          if (!event.target.checked) {
-            needSet.delete(providings.FOOD)
-          }
-          return [...needSet]
-        })}>
-          {providings.FOOD}
-        </NeedsCheckbox>
+        <NeedsCheckbox
+          label={providings.AMBULANCE}
+          checked={new Set(needs).has(providings.AMBULANCE)}
+          onChange={(checked) => selectNeeds(checked, providings.AMBULANCE)}
+        />
+        <NeedsCheckbox
+          label={providings.FOOD}
+          checked={new Set(needs).has(providings.FOOD)}
+          onChange={(checked) => selectNeeds(checked, providings.FOOD)}
+        />
       </div>
       <div className="flex justify-center">
-        <Link href={`/search?${createHref()}`} >
-          <button className="py-2 px-4 bg-pink-600 text-white font-semibold rounded-lg shadow-md focus:outline-none">Search</button>
+        <Link href={`/search?${createHref()}`}>
+          <Button primary>Search</Button>
         </Link>
       </div>
     </div>
-  )
+  );
 }
